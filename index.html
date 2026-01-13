@@ -469,11 +469,11 @@
   </head>
   <body>
     <!-- Version Badge -->
-    <div class="version-badge" title="גירסה עם תיקון שגיאת MIME type">
+    <div class="version-badge" title="גירסה עם תיקון מלא לשגיאות MIME type וסיומות קבצים">
       <i class="fas fa-check-circle badge-icon"></i>
       <span class="badge-status">✓ תוקן</span>
       <span class="badge-label">גירסה</span>
-      <span class="badge-version">v1.1.0</span>
+      <span class="badge-version">v1.1.1</span>
     </div>
 
     <div class="youtube-promo">
@@ -650,12 +650,13 @@
         <h2>עזרה</h2>
 
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-          <h3 style="margin-top: 0; color: white;">🎉 מה חדש בגירסה v1.1.0</h3>
+          <h3 style="margin-top: 0; color: white;">🎉 מה חדש בגירסה v1.1.1</h3>
           <ul style="margin: 10px 0; padding-right: 20px;">
+            <li><strong>🐛 תוקן (CRITICAL):</strong> בעיית case-sensitive בסיומות קבצים</li>
+            <li style="padding-right: 20px; font-size: 0.9em;">→ קבצים עם .MP3/.M4A (אותיות גדולות) עכשיו עובדים!</li>
             <li><strong>✅ תוקן:</strong> שגיאת 400 עם קבצי MP3 ופורמטים אחרים</li>
             <li><strong>⚡ שודרג:</strong> מודל Whisper Large v3 Turbo (פי 216 מהיר יותר!)</li>
             <li><strong>🔍 שופר:</strong> לוגים מפורטים בקונסול לזיהוי בעיות</li>
-            <li><strong>🎯 תמיכה מלאה:</strong> כל פורמטי האודיו של Groq</li>
           </ul>
           <small style="opacity: 0.9;">💡 טיפ: פתח את Console (F12) כדי לראות מידע מפורט על התמלול</small>
         </div>
@@ -734,9 +735,19 @@
       let accumulatedDuration = 0;
 
       // Version info and changelog
-      const APP_VERSION = 'v1.1.0';
+      const APP_VERSION = 'v1.1.1';
       const VERSION_DATE = '2026-01-13';
       const CHANGELOG = {
+        'v1.1.1': {
+          date: '2026-01-13',
+          changes: [
+            '🐛 תוקן (CRITICAL): בעיית case-sensitive בסיומות קבצים!',
+            '   - קבצים עם .MP3 (אותיות גדולות) לא עבדו → כעת מנורמל ל-.mp3',
+            '   - Groq API דורש סיומות באותיות קטנות בלבד',
+            '   - כל ה-chunks כעת עם סיומת מנורמלת אוטומטית',
+            '🔍 לוגים משופרים: הצגת נורמליזציה של סיומות בקונסול'
+          ]
+        },
         'v1.1.0': {
           date: '2026-01-13',
           changes: [
@@ -1233,6 +1244,11 @@
         const correctMimeType = getCorrectMimeType(file.name, file.type);
 
         console.log(`מחלק קובץ: ${file.name}`);
+        const originalExtension = file.name.split(".").pop();
+        const normalizedExtension = originalExtension.toLowerCase();
+        if (originalExtension !== normalizedExtension) {
+          console.log(`🔄 סיומת קובץ מקורית: .${originalExtension} → מנורמלת ל: .${normalizedExtension}`);
+        }
         console.log(`MIME type מקורי: ${file.type}`);
         console.log(`MIME type מתוקן: ${correctMimeType}`);
         console.log(`גודל קובץ: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
@@ -1243,14 +1259,15 @@
             Math.min(start + chunkSize, file.size)
           );
 
-          const extension = file.name.split(".").pop();
+          // וידוא שהסיומת באותיות קטנות (Groq case-sensitive!)
+          const extension = file.name.split(".").pop().toLowerCase();
           const chunkFile = new File(
             [chunk],
             `chunk_${chunks.length + 1}.${extension}`,
             { type: correctMimeType }
           );
 
-          console.log(`Chunk ${chunks.length + 1}: גודל=${(chunkFile.size / 1024 / 1024).toFixed(2)} MB, type=${chunkFile.type}`);
+          console.log(`Chunk ${chunks.length + 1}: שם=${chunkFile.name}, גודל=${(chunkFile.size / 1024 / 1024).toFixed(2)} MB, type=${chunkFile.type}`);
           chunks.push(chunkFile);
         }
 
@@ -1677,9 +1694,10 @@
       // הוספת פונקציה חדשה לחילוץ חלק מהאודיו
       async function extractAudioChunk(file, start, end) {
         const correctMimeType = getCorrectMimeType(file.name, file.type);
+        const extension = file.name.split(".").pop().toLowerCase();
         return new File(
           [file.slice(start, end)],
-          `chunk_${start}-${end}.${file.name.split(".").pop()}`,
+          `chunk_${start}-${end}.${extension}`,
           { type: correctMimeType }
         );
       }
