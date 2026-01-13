@@ -371,9 +371,111 @@
       .transcription-card.has-content {
         display: block; /* יוצג רק כשיש תוכן */
       }
+
+      /* Version Badge */
+      .version-badge {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        animation: slideInLeft 0.5s ease-out;
+      }
+
+      .version-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      .version-badge .badge-icon {
+        font-size: 1.1em;
+        animation: pulse 2s infinite;
+      }
+
+      .version-badge .badge-label {
+        opacity: 0.9;
+        font-size: 0.75em;
+        margin-right: 4px;
+      }
+
+      .version-badge .badge-version {
+        font-weight: 700;
+        font-size: 1em;
+      }
+
+      .version-badge .badge-status {
+        background-color: rgba(46, 204, 113, 0.3);
+        border: 1px solid rgba(46, 204, 113, 0.6);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.7em;
+        margin-right: 4px;
+        animation: glow 2s infinite;
+      }
+
+      @keyframes slideInLeft {
+        from {
+          transform: translateX(-100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      @keyframes glow {
+        0%, 100% {
+          box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
+        }
+        50% {
+          box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .version-badge {
+          top: 5px;
+          left: 5px;
+          padding: 6px 12px;
+          font-size: 0.75em;
+        }
+
+        .version-badge .badge-status {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
+    <!-- Version Badge -->
+    <div class="version-badge" title="גירסה עם תיקון שגיאת MIME type">
+      <i class="fas fa-check-circle badge-icon"></i>
+      <span class="badge-status">✓ תוקן</span>
+      <span class="badge-label">גירסה</span>
+      <span class="badge-version">v1.1.0</span>
+    </div>
+
     <div class="youtube-promo">
       רוצים ללמוד AI? הירשמו
       <a href="https://www.youtube.com/@sgolan20" target="_blank"
@@ -546,6 +648,18 @@
     <div id="helpPopup" class="popup">
       <div class="popup-content">
         <h2>עזרה</h2>
+
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+          <h3 style="margin-top: 0; color: white;">🎉 מה חדש בגירסה v1.1.0</h3>
+          <ul style="margin: 10px 0; padding-right: 20px;">
+            <li><strong>✅ תוקן:</strong> שגיאת 400 עם קבצי MP3 ופורמטים אחרים</li>
+            <li><strong>⚡ שודרג:</strong> מודל Whisper Large v3 Turbo (פי 216 מהיר יותר!)</li>
+            <li><strong>🔍 שופר:</strong> לוגים מפורטים בקונסול לזיהוי בעיות</li>
+            <li><strong>🎯 תמיכה מלאה:</strong> כל פורמטי האודיו של Groq</li>
+          </ul>
+          <small style="opacity: 0.9;">💡 טיפ: פתח את Console (F12) כדי לראות מידע מפורט על התמלול</small>
+        </div>
+
         <h3>איך להוציא מפתח API:</h3>
         <ol>
           <li>
@@ -618,6 +732,39 @@
 
       // הוספת משתנה גלובלי חדש לעקוב אחרי הזמן המצטבר
       let accumulatedDuration = 0;
+
+      // Version info and changelog
+      const APP_VERSION = 'v1.1.0';
+      const VERSION_DATE = '2026-01-13';
+      const CHANGELOG = {
+        'v1.1.0': {
+          date: '2026-01-13',
+          changes: [
+            '✅ תוקן: שגיאת 400 עם קבצי MP3 ופורמטים אחרים (תיקון MIME type)',
+            '⚡ שודרג: מודל Whisper Large v3 Turbo - פי 216 מהיר יותר',
+            '🔍 שופר: לוגים מפורטים בקונסול לזיהוי ופתרון בעיות',
+            '🎯 תמיכה מלאה: flac, mp3, mp4, mpeg, mpga, m4a, ogg, opus, wav, webm',
+            '📋 נוסף: סמן גירסה ויזואלי בדף',
+            '📚 עודכן: תיעוד מקיף (README.md, FEATURE_SUGGESTIONS.md)'
+          ]
+        }
+      };
+
+      // Display version info in console
+      console.log('%c╔═══════════════════════════════════════════════════╗', 'color: #667eea; font-weight: bold;');
+      console.log('%c║   QuickScribe - תמלול אודיו חכם                 ║', 'color: #667eea; font-weight: bold;');
+      console.log('%c╠═══════════════════════════════════════════════════╣', 'color: #667eea; font-weight: bold;');
+      console.log(`%c║   גירסה: ${APP_VERSION}                                    ║`, 'color: #2ecc71; font-weight: bold;');
+      console.log(`%c║   תאריך: ${VERSION_DATE}                           ║`, 'color: #667eea;');
+      console.log('%c╠═══════════════════════════════════════════════════╣', 'color: #667eea; font-weight: bold;');
+      console.log('%c║   🎉 מה חדש בגירסה זו:                          ║', 'color: #f39c12; font-weight: bold;');
+      CHANGELOG[APP_VERSION].changes.forEach(change => {
+        console.log(`%c║   ${change}`, 'color: #667eea;');
+      });
+      console.log('%c╠═══════════════════════════════════════════════════╣', 'color: #667eea; font-weight: bold;');
+      console.log('%c║   💡 טיפ: כל הלוגים של התמלול יוצגו כאן         ║', 'color: #3498db;');
+      console.log('%c╚═══════════════════════════════════════════════════╝', 'color: #667eea; font-weight: bold;');
+      console.log('');
 
       function showPopup(popupId) {
         document.getElementById(popupId).style.display = "flex";
