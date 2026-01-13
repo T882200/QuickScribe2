@@ -924,7 +924,7 @@
       async function transcribeChunk(chunk, chunkNumber, totalChunks) {
         const formData = new FormData();
         formData.append("file", chunk);
-        formData.append("model", "whisper-large-v3");
+        formData.append("model", "whisper-large-v3-turbo");
         formData.append("response_format", "verbose_json");
         
         // בדיקת השפה הנבחרת
