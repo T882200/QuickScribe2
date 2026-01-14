@@ -1483,14 +1483,28 @@
               <label for="fileName">שם הקובץ:</label>
               <input type="text" id="fileName" value="${defaultFileName}" style="width: 100%; margin-top: 5px; padding: 5px;">
             </div>
-            <div class="popup-footer">
-              <button class="control-button" id="downloadSrt">
-                <i class="fas fa-download"></i> הורד כ-SRT
-              </button>
-              <button class="control-button" id="downloadTxt">
-                <i class="fas fa-download"></i> הורד כטקסט
-              </button>
-              <button class="control-button" id="cancelDownload">ביטול</button>
+            <div style="margin-bottom: 15px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: bold;">בחר פורמט:</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="control-button" id="downloadSrt">
+                  <i class="fas fa-file-alt"></i> SRT
+                </button>
+                <button class="control-button" id="downloadVtt">
+                  <i class="fas fa-file-video"></i> VTT
+                </button>
+                <button class="control-button" id="downloadTxt">
+                  <i class="fas fa-file-text"></i> טקסט
+                </button>
+                <button class="control-button" id="downloadJson">
+                  <i class="fas fa-file-code"></i> JSON
+                </button>
+                <button class="control-button" id="downloadCsv">
+                  <i class="fas fa-table"></i> CSV
+                </button>
+                <button class="control-button" id="cancelDownload" style="grid-column: span 2; background-color: #757575;">
+                  ביטול
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -1502,6 +1516,20 @@
             document.getElementById("fileName").value.trim() || defaultFileName;
           const content = document.getElementById("srtTranscription").innerText;
           downloadContent(content, `${fileName}.srt`);
+          showMessage("קובץ SRT הורד בהצלחה");
+          downloadPopup.remove();
+        };
+
+        document.getElementById("downloadVtt").onclick = () => {
+          const fileName =
+            document.getElementById("fileName").value.trim() || defaultFileName;
+          const content = convertToVTT();
+          if (content) {
+            downloadContent(content, `${fileName}.vtt`);
+            showMessage("קובץ VTT הורד בהצלחה");
+          } else {
+            showMessage("שגיאה ביצירת קובץ VTT");
+          }
           downloadPopup.remove();
         };
 
@@ -1512,12 +1540,128 @@
             "plainTextTranscription"
           ).innerText;
           downloadContent(content, `${fileName}.txt`);
+          showMessage("קובץ טקסט הורד בהצלחה");
+          downloadPopup.remove();
+        };
+
+        document.getElementById("downloadJson").onclick = () => {
+          const fileName =
+            document.getElementById("fileName").value.trim() || defaultFileName;
+          const content = convertToJSON();
+          if (content) {
+            downloadContent(content, `${fileName}.json`);
+            showMessage("קובץ JSON הורד בהצלחה");
+          } else {
+            showMessage("שגיאה ביצירת קובץ JSON");
+          }
+          downloadPopup.remove();
+        };
+
+        document.getElementById("downloadCsv").onclick = () => {
+          const fileName =
+            document.getElementById("fileName").value.trim() || defaultFileName;
+          const content = convertToCSV();
+          if (content) {
+            downloadContent(content, `${fileName}.csv`);
+            showMessage("קובץ CSV הורד בהצלחה");
+          } else {
+            showMessage("שגיאה ביצירת קובץ CSV");
+          }
           downloadPopup.remove();
         };
 
         document.getElementById("cancelDownload").onclick = () => {
           downloadPopup.remove();
         };
+      }
+
+      // ================== Export Format Functions ==================
+
+      // Convert to VTT (WebVTT) format
+      function convertToVTT() {
+        if (!transcriptionResult || !transcriptionResult.segments || transcriptionResult.segments.length === 0) {
+          return '';
+        }
+
+        let vtt = 'WEBVTT\n\n';
+        const wordsPerSubtitle = parseInt(document.getElementById("wordsPerSubtitle").value);
+        let subtitleIndex = 1;
+
+        transcriptionResult.segments.forEach((segment) => {
+          const subtitles = splitIntoSubtitles(
+            segment.text.trim(),
+            segment.start,
+            segment.end,
+            wordsPerSubtitle
+          );
+
+          subtitles.forEach((subtitle) => {
+            vtt += `${subtitleIndex}\n`;
+            vtt += `${formatTimeVTT(subtitle.start)} --> ${formatTimeVTT(subtitle.end)}\n`;
+            vtt += `${subtitle.text.trim()}\n\n`;
+            subtitleIndex++;
+          });
+        });
+
+        return vtt;
+      }
+
+      // Format time for VTT (HH:MM:SS.mmm)
+      function formatTimeVTT(seconds) {
+        const date = new Date(seconds * 1000);
+        const hours = date.getUTCHours().toString().padStart(2, "0");
+        const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+        const secs = date.getUTCSeconds().toString().padStart(2, "0");
+        const ms = date.getUTCMilliseconds().toString().padStart(3, "0");
+        return `${hours}:${minutes}:${secs}.${ms}`;
+      }
+
+      // Convert to JSON format
+      function convertToJSON() {
+        if (!transcriptionResult || !transcriptionResult.segments || transcriptionResult.segments.length === 0) {
+          return '';
+        }
+
+        const data = {
+          metadata: {
+            version: APP_VERSION,
+            date: new Date().toISOString(),
+            fileName: selectedFile ? selectedFile.name : 'recording',
+            language: document.getElementById("transcriptionLanguage").value,
+            wordsPerSubtitle: parseInt(document.getElementById("wordsPerSubtitle").value)
+          },
+          segments: transcriptionResult.segments.map((segment, index) => ({
+            id: index + 1,
+            start: segment.start,
+            end: segment.end,
+            duration: segment.end - segment.start,
+            text: segment.text.trim()
+          })),
+          fullText: transcriptionResult.segments.map(s => s.text.trim()).join(' ')
+        };
+
+        return JSON.stringify(data, null, 2);
+      }
+
+      // Convert to CSV format
+      function convertToCSV() {
+        if (!transcriptionResult || !transcriptionResult.segments || transcriptionResult.segments.length === 0) {
+          return '';
+        }
+
+        let csv = 'ID,Start Time,End Time,Duration,Text\n';
+
+        transcriptionResult.segments.forEach((segment, index) => {
+          const id = index + 1;
+          const start = segment.start.toFixed(3);
+          const end = segment.end.toFixed(3);
+          const duration = (segment.end - segment.start).toFixed(3);
+          // Escape quotes in text and wrap in quotes
+          const text = `"${segment.text.trim().replace(/"/g, '""')}"`;
+          csv += `${id},${start},${end},${duration},${text}\n`;
+        });
+
+        return csv;
       }
 
       function downloadContent(content, fileName) {
