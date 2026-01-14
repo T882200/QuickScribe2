@@ -396,6 +396,13 @@
         margin-bottom: 40px;
       }
 
+      /* רווח פנימי לתיבות התמלול */
+      #srtTranscription,
+      #plainTextTranscription,
+      #timestampTranscription {
+        padding: 20px;
+      }
+
       .transcription-container.expanded {
         max-height: none;
         margin-bottom: 10px;
@@ -601,11 +608,11 @@
   </head>
   <body>
     <!-- Version Badge -->
-    <div class="version-badge" title="נגן אודיו אינטראקטיבי עם timestamps לחיצים">
+    <div class="version-badge" title="תמיכה ביידיש וקונטקסט לשיפור דיוק התמלול">
       <i class="fas fa-check-circle badge-icon"></i>
       <span class="badge-status">✓ חדש</span>
       <span class="badge-label">גירסה</span>
-      <span class="badge-version">v2.1.0</span>
+      <span class="badge-version">v2.2.0</span>
     </div>
 
     <!-- Theme Toggle Button -->
@@ -809,6 +816,7 @@
           <select id="transcriptionLanguage">
             <option value="auto" selected>זיהוי אוטומטי</option>
             <option value="he">עברית</option>
+            <option value="yi">יידיש (Yiddish)</option>
             <option value="en">אנגלית</option>
             <option value="ar">ערבית</option>
             <option value="ru">רוסית</option>
@@ -817,6 +825,41 @@
             <option value="de">גרמנית</option>
           </select>
         </div>
+
+        <!-- Context Prompt (Advanced Feature) -->
+        <div style="margin-bottom: 15px;">
+          <details style="margin-bottom: 10px;">
+            <summary style="cursor: pointer; font-weight: bold; color: var(--primary-color); padding: 5px 0;">
+              🎯 הגדרות מתקדמות (אופציונלי)
+            </summary>
+            <div style="margin-top: 10px; padding: 10px; background: var(--card-background); border-radius: 8px; border: 1px solid #ddd;">
+              <label for="contextPrompt" style="display: block; margin-bottom: 5px;">
+                <strong>קונטקסט לשיפור התמלול:</strong>
+              </label>
+              <textarea
+                id="contextPrompt"
+                rows="4"
+                maxlength="900"
+                placeholder="לדוגמא: גמרא ברכות דף ב עמוד א, רש״י, תוספות, רבן גמליאל, קריאת שמע..."
+                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; resize: vertical; font-family: inherit; font-size: 0.9em;"
+                oninput="updateCharCount()"></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                <small id="charCount" style="color: #666;">0 / 900 תווים (~0 מתוך 224 tokens)</small>
+                <button type="button" onclick="clearPrompt()" style="padding: 3px 10px; font-size: 0.85em; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">נקה</button>
+              </div>
+              <div style="margin-top: 10px; padding: 8px; background: #e8f4f8; border-radius: 5px; font-size: 0.85em;">
+                <strong>💡 איך להשתמש:</strong>
+                <ul style="margin: 5px 0; padding-right: 20px;">
+                  <li>הזן מילים, שמות או ביטויים שמופיעים בהקלטה</li>
+                  <li>מועיל במיוחד למונחים טכניים, שמות מקומות, או ביטויים דתיים</li>
+                  <li>לדוגמא לשיעור גמרא: העתק את הטקסט מהדף הספציפי</li>
+                  <li>המודל ישתמש במידע זה לשיפור הדיוק</li>
+                </ul>
+              </div>
+            </div>
+          </details>
+        </div>
+
         <div class="popup-footer">
           <button class="control-button" onclick="saveSettings()">שמור</button>
           <button class="control-button" onclick="closePopup('settingsPopup')">ביטול</button>
@@ -829,8 +872,11 @@
         <h2>עזרה</h2>
 
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-          <h3 style="margin-top: 0; color: white;">🎉 מה חדש בגירסה v2.1.0</h3>
+          <h3 style="margin-top: 0; color: white;">🎉 מה חדש בגירסה v2.2.0</h3>
           <ul style="margin: 10px 0; padding-right: 20px;">
+            <li><strong>✡️ תמיכה ביידיש:</strong> תמלול מלא בשפת יידיש (Yiddish)</li>
+            <li><strong>🎯 קונטקסט חכם:</strong> הזן טקסט לשיפור דיוק התמלול (224 tokens)</li>
+            <li><strong>📚 מושלם לגמרא/הלכה:</strong> העתק טקסט מהדף לתוצאות מדויקות</li>
             <li><strong>🎵 נגן אודיו:</strong> נגן מובנה עם קיצורי מקלדת (F1/F2/F3)</li>
             <li><strong>🔗 Timestamps אינטראקטיביים:</strong> לחץ על timestamp כדי לקפוץ לשניה במדויק</li>
             <li><strong>✏️ עריכת טקסט:</strong> ערוך תמלולים ישירות בתוך האתר</li>
@@ -880,6 +926,34 @@
           <li>לחצו על "התחל תמלול"</li>
           <li>התינו לתוצאות בחרו בין פורמט SRT לטקסט רגיל</li>
         </ol>
+
+        <h3>🎯 שיפור דיוק התמלול (מתקדם):</h3>
+        <div style="background-color: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-right: 4px solid var(--primary-color);">
+          <h4 style="margin-top: 0; color: var(--primary-color);">תמיכה בשפת יידיש ✡️</h4>
+          <p>המערכת תומכת בתמלול יידיש! בחרו "יידיש (Yiddish)" מרשימת השפות בהגדרות.</p>
+
+          <h4 style="color: var(--primary-color);">הוספת קונטקסט לשיפור התמלול 📚</h4>
+          <p><strong>מה זה?</strong> אפשרות להזין טקסט שמופיע בהקלטה כדי לעזור למודל לזהות נכון מילים, שמות ומושגים.</p>
+
+          <p><strong>איך זה עובד?</strong></p>
+          <ul style="margin: 5px 0; padding-right: 20px;">
+            <li>היכנסו להגדרות (⚙️)</li>
+            <li>פתחו "הגדרות מתקדמות"</li>
+            <li>הזינו טקסט רלוונטי בשדה "קונטקסט לשיפור התמלול"</li>
+            <li>עד 900 תווים (~224 tokens)</li>
+          </ul>
+
+          <p><strong>דוגמאות שימוש:</strong></p>
+          <ul style="margin: 5px 0; padding-right: 20px;">
+            <li><strong>שיעור גמרא:</strong> "גמרא ברכות דף ב עמוד א, רש״י, תוספות, רבן גמליאל, רבי יהושע, קריאת שמע, ברכות השחר"</li>
+            <li><strong>שיעור הלכה:</strong> "שולחן ערוך, אורח חיים, הלכות שבת, מלאכה, מוקצה, טלטול"</li>
+            <li><strong>עברית ישיבתית:</strong> רשימת מילים בהברה אשכנזית שמופיעות בהקלטה</li>
+            <li><strong>שיחה עם מונחים:</strong> שמות מקומות, אנשים, או מושגים טכניים</li>
+          </ul>
+
+          <p style="margin-top: 10px; color: #2c3e50;"><em>💡 עצה: העתיקו טקסט ישירות מהמקור (דף גמרא, ספר הלכה וכו') לתוצאות הטובות ביותר!</em></p>
+        </div>
+
         <button class="control-button" onclick="closePopup('helpPopup')">
           סגור
         </button>
@@ -924,6 +998,7 @@
       let originalAudioBlob = null;
       let originalWordsPerSubtitle = "8";
       let originalLanguage = "auto";
+      let contextPrompt = ""; // Context prompt for improving transcription accuracy
 
       let selectedFile = null;
 
@@ -939,9 +1014,19 @@
       let audioFile = null;
 
       // Version info and changelog
-      const APP_VERSION = 'v2.1.0';
+      const APP_VERSION = 'v2.2.0';
       const VERSION_DATE = '2026-01-14';
       const CHANGELOG = {
+        'v2.2.0': {
+          date: '2026-01-14',
+          changes: [
+            '✡️ נוסף: תמיכה מלאה בשפת יידיש (Yiddish) - קוד yi',
+            '🎯 נוסף: שדה קונטקסט (prompt) לשיפור דיוק התמלול - עד 224 tokens',
+            '📚 נוסף: תמיכה בתמלול גמרא, הלכה ועברית ישיבתית באמצעות קונטקסט',
+            '🐛 תוקן: רווח 20px בתיבות הפלט לקריאות טובה יותר',
+            '📖 נוסף: מדריך מפורט על שימוש בקונטקסט בעזרה'
+          ]
+        },
         'v2.1.0': {
           date: '2026-01-14',
           changes: [
@@ -1370,7 +1455,44 @@
         originalWordsPerSubtitle =
           document.getElementById("wordsPerSubtitle").value;
         originalLanguage = document.getElementById("transcriptionLanguage").value;
+        contextPrompt = document.getElementById("contextPrompt").value.trim();
+
+        // הצגת הודעה אם נוסף קונטקסט
+        if (contextPrompt) {
+          showMessage(`הגדרות נשמרו עם קונטקסט (${contextPrompt.length} תווים)`);
+        }
+
         document.getElementById("settingsPopup").style.display = "none";
+      }
+
+      // עדכון מונה תווים ב-prompt
+      function updateCharCount() {
+        const textarea = document.getElementById("contextPrompt");
+        const charCountElement = document.getElementById("charCount");
+        const length = textarea.value.length;
+
+        // הערכה גסה: ~4 תווים = 1 token בממוצע
+        const estimatedTokens = Math.ceil(length / 4);
+
+        charCountElement.textContent = `${length} / 900 תווים (~${estimatedTokens} מתוך 224 tokens)`;
+
+        // שינוי צבע אם מתקרבים למקסימום
+        if (estimatedTokens > 224) {
+          charCountElement.style.color = '#e74c3c';
+          charCountElement.style.fontWeight = 'bold';
+        } else if (estimatedTokens > 200) {
+          charCountElement.style.color = '#f39c12';
+        } else {
+          charCountElement.style.color = '#666';
+          charCountElement.style.fontWeight = 'normal';
+        }
+      }
+
+      // ניקוי שדה ה-prompt
+      function clearPrompt() {
+        document.getElementById("contextPrompt").value = '';
+        updateCharCount();
+        showMessage('קונטקסט נוקה');
       }
 
       function updateRecordingStatus() {
@@ -1585,6 +1707,13 @@
           console.log(`שפה נבחרת: ${selectedLanguage}`);
         } else {
           console.log('שפה: זיהוי אוטומטי');
+        }
+
+        // הוספת קונטקסט אם קיים (לשיפור דיוק התמלול)
+        if (contextPrompt && contextPrompt.trim()) {
+          formData.append("prompt", contextPrompt.trim());
+          console.log(`קונטקסט נוסף: "${contextPrompt.substring(0, 50)}${contextPrompt.length > 50 ? '...' : ''}"`);
+          console.log(`אורך קונטקסט: ${contextPrompt.length} תווים (~${Math.ceil(contextPrompt.length / 4)} tokens)`);
         }
 
         formData.append("temperature", "0");
