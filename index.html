@@ -56,9 +56,69 @@
         color: var(--text-color);
       }
 
+      [data-theme="dark"] .popup-content h2,
+      [data-theme="dark"] .popup-content h3,
+      [data-theme="dark"] .popup-content label,
+      [data-theme="dark"] .popup-content p,
+      [data-theme="dark"] .popup-content li,
+      [data-theme="dark"] .popup-content ol,
+      [data-theme="dark"] .popup-content ul {
+        color: var(--text-color);
+      }
+
+      [data-theme="dark"] #srtTranscription,
+      [data-theme="dark"] #plainTextTranscription,
+      [data-theme="dark"] #timestampTranscription {
+        color: var(--text-color);
+        background-color: var(--card-background);
+      }
+
+      [data-theme="dark"] #srtTranscription pre {
+        color: var(--text-color);
+      }
+
+      [data-theme="dark"] .transcription-container {
+        background-color: var(--card-background);
+      }
+
       [data-theme="dark"] .youtube-promo {
         background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
         border-bottom: 2px solid var(--primary-color);
+      }
+
+      /* Timestamp Styles */
+      .timestamp-link {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin: 0 5px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9em;
+        transition: all 0.2s ease;
+        border: none;
+        font-family: 'Courier New', monospace;
+      }
+
+      .timestamp-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
+      }
+
+      .timestamp-link:active {
+        transform: translateY(0);
+      }
+
+      [data-theme="dark"] .timestamp-link {
+        background: linear-gradient(135deg, #5dade2, #58d68d);
+      }
+
+      #timestampTranscription[contenteditable="true"] {
+        border: 2px dashed var(--primary-color);
+        padding: 10px;
+        border-radius: 8px;
       }
 
       /* Theme Toggle Button */
@@ -541,11 +601,11 @@
   </head>
   <body>
     <!-- Version Badge -->
-    <div class="version-badge" title="גירסה עם תיקון מלא לשגיאות MIME type וסיומות קבצים">
+    <div class="version-badge" title="נגן אודיו אינטראקטיבי עם timestamps לחיצים">
       <i class="fas fa-check-circle badge-icon"></i>
-      <span class="badge-status">✓ תוקן</span>
+      <span class="badge-status">✓ חדש</span>
       <span class="badge-label">גירסה</span>
-      <span class="badge-version">v2.0.0</span>
+      <span class="badge-version">v2.1.0</span>
     </div>
 
     <!-- Theme Toggle Button -->
@@ -591,6 +651,9 @@
           <button class="tab-button active" onclick="showTab('srt')">
             SRT
           </button>
+          <button class="tab-button" onclick="showTab('timestamp')">
+            טקסט עם Timestamps
+          </button>
           <button class="tab-button" onclick="showTab('plainText')">
             טקסט רגיל
           </button>
@@ -604,7 +667,22 @@
             </button>
           </div>
         </div>
-        <div id="plainTextContent" class="tab-content">
+        <div id="timestampContent" class="tab-content" style="display: none;">
+          <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
+            <button class="control-button" onclick="toggleEditable()" style="width: auto; padding: 8px 15px;">
+              <i class="fas fa-edit"></i> <span id="editToggleText">אפשר עריכה</span>
+            </button>
+            <small style="color: #666;">💡 לחץ על timestamp כדי לנגן מנקודה זו</small>
+          </div>
+          <div class="transcription-container">
+            <div id="timestampTranscription" contenteditable="false" style="outline: none;"></div>
+            <div class="transcription-fade"></div>
+            <button class="expand-button" onclick="toggleTranscription(this)">
+              הצג הכל
+            </button>
+          </div>
+        </div>
+        <div id="plainTextContent" class="tab-content" style="display: none;">
           <div class="transcription-container">
             <div id="plainTextTranscription"></div>
             <div class="transcription-fade"></div>
@@ -613,6 +691,30 @@
             </button>
           </div>
         </div>
+
+        <!-- Audio Player -->
+        <div id="audioPlayerContainer" style="display: none; margin-top: 15px; padding: 15px; background: var(--card-background); border-radius: 8px; border: 2px solid var(--primary-color);">
+          <h3 style="margin: 0 0 10px 0; color: var(--primary-color);">נגן אודיו</h3>
+          <audio id="audioPlayer" style="width: 100%; margin-bottom: 10px;" controls></audio>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="control-button" onclick="rewind5()" style="width: auto; padding: 8px 15px;">
+              <i class="fas fa-backward"></i> -5s (F1)
+            </button>
+            <button class="control-button" onclick="togglePlayPause()" style="width: auto; padding: 8px 15px;">
+              <i class="fas fa-play" id="playPauseIcon"></i> <span id="playPauseText">Play (F2)</span>
+            </button>
+            <button class="control-button" onclick="forward5()" style="width: auto; padding: 8px 15px;">
+              <i class="fas fa-forward"></i> +5s (F3)
+            </button>
+            <button class="control-button" onclick="stopAudio()" style="width: auto; padding: 8px 15px; background: #e74c3c;">
+              <i class="fas fa-stop"></i> Stop (ESC)
+            </button>
+          </div>
+          <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-color);">
+            <strong>זמן:</strong> <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+          </div>
+        </div>
+
         <button class="control-button" onclick="copyToClipboard()">
           <i class="fas fa-copy"></i> העתק
         </button>
@@ -727,8 +829,11 @@
         <h2>עזרה</h2>
 
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-          <h3 style="margin-top: 0; color: white;">🎉 מה חדש בגירסה v2.0.0</h3>
+          <h3 style="margin-top: 0; color: white;">🎉 מה חדש בגירסה v2.1.0</h3>
           <ul style="margin: 10px 0; padding-right: 20px;">
+            <li><strong>🎵 נגן אודיו:</strong> נגן מובנה עם קיצורי מקלדת (F1/F2/F3)</li>
+            <li><strong>🔗 Timestamps אינטראקטיביים:</strong> לחץ על timestamp כדי לקפוץ לשניה במדויק</li>
+            <li><strong>✏️ עריכת טקסט:</strong> ערוך תמלולים ישירות בתוך האתר</li>
             <li><strong>📦 פורמטי ייצוא:</strong> VTT, JSON, CSV (נוסף על SRT ו-TXT)</li>
             <li><strong>⌨️ קיצורי מקלדת:</strong> Ctrl+Enter, Ctrl+D, Ctrl+C, Ctrl+T</li>
             <li><strong>🌓 מצב כהה/בהיר:</strong> לחץ על הכפתור בפינה או Ctrl+T</li>
@@ -739,6 +844,7 @@
 
         <h3>⌨️ קיצורי מקלדת:</h3>
         <div style="background-color: #f5f7fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+          <p style="margin: 5px 0; font-weight: bold;">כלליים:</p>
           <ul style="list-style: none; padding: 0; margin: 5px 0;">
             <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">Ctrl+Enter</kbd> - התחל תמלול</li>
             <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">Ctrl+D</kbd> - הורד קובץ</li>
@@ -746,6 +852,12 @@
             <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">Ctrl+T</kbd> - החלף ערכת נושא</li>
             <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">Ctrl+H</kbd> - פתח עזרה</li>
             <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">Esc</kbd> - סגור חלונות</li>
+          </ul>
+          <p style="margin: 10px 0 5px 0; font-weight: bold;">נגן אודיו:</p>
+          <ul style="list-style: none; padding: 0; margin: 5px 0;">
+            <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">F1</kbd> - חזרה 5 שניות אחורה</li>
+            <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">F2</kbd> - נגן/עצור (Play/Pause)</li>
+            <li style="padding: 5px 0;"><kbd style="background: #fff; padding: 3px 8px; border-radius: 3px; border: 1px solid #ddd;">F3</kbd> - הרצה 5 שניות קדימה</li>
           </ul>
         </div>
 
@@ -822,10 +934,24 @@
       // הוספת משתנה גלובלי חדש לעקוב אחרי הזמן המצטבר
       let accumulatedDuration = 0;
 
+      // Audio player variables
+      let audioPlayer = null;
+      let audioFile = null;
+
       // Version info and changelog
-      const APP_VERSION = 'v2.0.0';
+      const APP_VERSION = 'v2.1.0';
       const VERSION_DATE = '2026-01-14';
       const CHANGELOG = {
+        'v2.1.0': {
+          date: '2026-01-14',
+          changes: [
+            '🎵 נוסף: נגן אודיו מובנה עם קיצורי מקלדת (F1/F2/F3/ESC)',
+            '🔗 נוסף: תצוגת timestamps אינטראקטיביים - לחיצה על timestamp קופצת לשניה במדויק',
+            '✏️ נוסף: אפשרות עריכת תמלול ישירות בתוך האתר (toggle)',
+            '🐛 תוקן: טקסט לבן על רקע לבן במצב כהה (תוצאות תמלול ועזרה)',
+            '📱 שופר: UI של נגן האודיו ותמיכה מלאה בכל המקלדת'
+          ]
+        },
         'v2.0.0': {
           date: '2026-01-14',
           changes: [
@@ -969,6 +1095,27 @@
         const key = e.key;
         const ctrl = e.ctrlKey || e.metaKey;
 
+        // Audio player shortcuts (F1, F2, F3, ESC)
+        if (key === 'F1') {
+          e.preventDefault();
+          rewind5();
+          return;
+        }
+        if (key === 'F2') {
+          e.preventDefault();
+          togglePlayPause();
+          return;
+        }
+        if (key === 'F3') {
+          e.preventDefault();
+          forward5();
+          return;
+        }
+        if (key === 'Escape' && audioPlayer) {
+          stopAudio();
+          // Don't return - let it also close popups
+        }
+
         let shortcut = '';
         if (ctrl) shortcut += 'Ctrl+';
         shortcut += key === 'Enter' ? 'Enter' : key.toLowerCase();
@@ -977,6 +1124,140 @@
           SHORTCUTS[shortcut].action(e);
         }
       });
+
+      // ================== Audio Player Functions ==================
+
+      // Initialize audio player
+      function initAudioPlayer() {
+        audioPlayer = document.getElementById('audioPlayer');
+        if (!audioPlayer) return;
+
+        // Load audio file
+        if (selectedFile) {
+          audioFile = URL.createObjectURL(selectedFile);
+          audioPlayer.src = audioFile;
+          document.getElementById('audioPlayerContainer').style.display = 'block';
+        } else if (audioBlob) {
+          audioFile = URL.createObjectURL(audioBlob);
+          audioPlayer.src = audioFile;
+          document.getElementById('audioPlayerContainer').style.display = 'block';
+        }
+
+        // Update duration when metadata is loaded
+        audioPlayer.addEventListener('loadedmetadata', () => {
+          document.getElementById('duration').textContent = formatAudioTime(audioPlayer.duration);
+        });
+
+        // Update current time during playback
+        audioPlayer.addEventListener('timeupdate', () => {
+          document.getElementById('currentTime').textContent = formatAudioTime(audioPlayer.currentTime);
+        });
+
+        // Update play/pause button
+        audioPlayer.addEventListener('play', () => {
+          document.getElementById('playPauseIcon').className = 'fas fa-pause';
+          document.getElementById('playPauseText').textContent = 'Pause (F2)';
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+          document.getElementById('playPauseIcon').className = 'fas fa-play';
+          document.getElementById('playPauseText').textContent = 'Play (F2)';
+        });
+      }
+
+      // Format time for display (MM:SS)
+      function formatAudioTime(seconds) {
+        if (isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      // Toggle play/pause (F2)
+      function togglePlayPause() {
+        if (!audioPlayer) {
+          showMessage('אין קובץ אודיו טעון');
+          return;
+        }
+
+        if (audioPlayer.paused) {
+          audioPlayer.play();
+        } else {
+          audioPlayer.pause();
+        }
+      }
+
+      // Rewind 5 seconds (F1)
+      function rewind5() {
+        if (!audioPlayer) {
+          showMessage('אין קובץ אודיו טעון');
+          return;
+        }
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 5);
+      }
+
+      // Forward 5 seconds (F3)
+      function forward5() {
+        if (!audioPlayer) {
+          showMessage('אין קובץ אודיו טעון');
+          return;
+        }
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 5);
+      }
+
+      // Stop audio (ESC)
+      function stopAudio() {
+        if (!audioPlayer) return;
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+      }
+
+      // Jump to specific time (from timestamp click)
+      function jumpToTime(seconds) {
+        if (!audioPlayer) {
+          showMessage('אין קובץ אודיו טעון - טען קובץ תחילה');
+          return;
+        }
+        audioPlayer.currentTime = seconds;
+        audioPlayer.play();
+        showMessage(`עובר ל-${formatAudioTime(seconds)}`);
+      }
+
+      // ================== Timestamp Transcription Functions ==================
+
+      // Generate timestamp transcription view
+      function generateTimestampTranscription() {
+        if (!transcriptionResult || !transcriptionResult.segments) {
+          return '';
+        }
+
+        let html = '';
+        transcriptionResult.segments.forEach((segment, index) => {
+          const timestamp = formatAudioTime(segment.start);
+          html += `<span class="timestamp-link" onclick="jumpToTime(${segment.start})" title="לחץ כדי לנגן מכאן">[${timestamp}]</span> `;
+          html += `${segment.text.trim()} `;
+        });
+
+        return html;
+      }
+
+      // Toggle editable mode
+      function toggleEditable() {
+        const transcription = document.getElementById('timestampTranscription');
+        const toggleText = document.getElementById('editToggleText');
+
+        const isEditable = transcription.getAttribute('contenteditable') === 'true';
+
+        if (isEditable) {
+          transcription.setAttribute('contenteditable', 'false');
+          toggleText.textContent = 'אפשר עריכה';
+          showMessage('מצב עריכה כבוי');
+        } else {
+          transcription.setAttribute('contenteditable', 'true');
+          toggleText.textContent = 'נעל עריכה';
+          showMessage('מצב עריכה פעיל - ניתן לערוך את הטקסט');
+        }
+      }
 
       // Initialize theme on page load
       loadTheme();
@@ -1257,6 +1538,9 @@
 
           showTab("srt");
           showMessage("התמלול הושלם בהצלחה!");
+
+          // הפעלת נגן האודיו
+          initAudioPlayer();
         } catch (error) {
           console.error("שגיאה בתמלול:", error);
           showMessage(
@@ -1531,6 +1815,10 @@
           ).innerHTML = `<pre>${srtFormat}</pre>`;
           document.getElementById("plainTextTranscription").textContent =
             plainText.trim();
+
+          // עדכון תצוגת טקסט עם timestamps
+          document.getElementById("timestampTranscription").innerHTML =
+            generateTimestampTranscription();
 
           // עדכון או יצירה של אינדיקטור התקדמות
           if (isPartial && currentChunk) {
